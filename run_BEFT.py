@@ -1,18 +1,9 @@
-"""This file contains a tool that wraps the GLUEvaluator API, the tool supports all the evaluations that were
-performed in BitFit paper (https://arxiv.org/abs/1804.07461), such as: 'full_ft', 'bitfit', 'frozen', 'rand_uniform'
-and 'rand_row_col'.
-
-For questions please reach: benzakenelad@gmail.com
-
-Author Elad Ben-Zaken
-"""
-
 import argparse
 import os
 import logging
 
 from utils import setup_logging
-from glue_evaluator import GLUEvaluator, set_seed
+from BEFT_evaluator import GLUEvaluator, set_seed
 
 setup_logging()
 LOGGER = logging.getLogger(__file__)
@@ -24,7 +15,7 @@ RAND_UNIFORM_MASK_SIZE = {'bert-base-cased': 100000, 'bert-large-cased': 280000,
 
 
 def _parse_args():
-    parser = argparse.ArgumentParser(description='BitFit GLUE evaluation',
+    parser = argparse.ArgumentParser(description='BEFT evaluation',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('--output-path', '-o', required=False, type=str, default='./results',
@@ -40,16 +31,16 @@ def _parse_args():
     parser.add_argument('--bias-terms-loop', type=bool, default=True, help='whether bias terms loop')
                         
     parser.add_argument('--fine-tune-type', '-f', required=False, type=str, default='bitfit',
-                        help='Which fine tuning process to perform, types are the types that were performed in BitFit paper.',
+                        help='Which fine tuning process to perform, types are the types that were performed.',
                         choices={'full_ft', 'bitfit', 'frozen', 'rand_uniform', 'rand_row_col'})
     parser.add_argument('--bias-terms', metavar='N', type=str, nargs='+', default=['all'],
                         choices={'intermediate', 'key', 'query', 'value', 'output', 'output_layernorm',
                                  'attention_layernorm', 'all','gLN1','gLN2'},
-                        help='bias terms to BitFit, should be given in case --fine-tune-type is bitfit '
-                             '(choose \'all\' for BitFit all bias terms)')
+                        help='bias terms, should be given in case --fine-tune-type is bitfit '
+                             '(choose \'all\' for all bias terms)')
 
     parser.add_argument('--gpu-device', '-d', type=int, default=0,
-                        help='GPU id for BitFit, if not mentioned will train on CPU.')
+                        help='GPU id for BEFT, if not mentioned will train on CPU.')
     parser.add_argument('--seed', '-s', type=int, default=0, help='seed value to set.')
     parser.add_argument('--learning-rate', '-l', type=float, help='learning rate for training.')
     parser.add_argument('--epochs', '-e', type=int, default=16, help='number of training epochs.')
@@ -97,7 +88,6 @@ def _plot_training_details(args,data_size):
 
     if args.fine_tune_type == 'bitfit':
         LOGGER.info(f"Bias Trainable Terms: {'all bias terms' if 'all' in args.bias_terms else args.bias_terms}")
-
 
     lr_bert_base = {'cola':7e-4, 'mnli':1e-4, 'mrpc':7e-4, 'qnli':1e-4, 'qqp':4e-4, 'rte':1e-3, 'sst2':4e-4, 'stsb':1e-4,'cb':1e-3,'wic':1e-3}
 
@@ -151,8 +141,6 @@ def _perform_training_preparations(evaluator, args, trainable_components):
 def main(args):
     # args parsing
     _validate_args(args)
-    #_plot_training_details(args)
-
 
     if args.training_data_number == 'all':
         _plot_training_details(args,'all')
@@ -171,7 +159,6 @@ def main(args):
         evaluator.train_and_evaluate(args.epochs, args.output_path,args.epochs-1) # final evaluation
 
         # saving artifacts
-        # #if args.fine_tune_type == 'bitfit':
         if not args.bias_terms_loop:
             evaluator.plot_terms_changes(os.path.join(args.output_path, 'bias_term_changes_'+args.fine_tune_type+'_'+args.task_name+'_'+'alldata'))
             evaluator.plot_terms_angles(os.path.join(args.output_path, 'angles_term_changes_'+args.fine_tune_type+'_'+args.task_name+'_'+'alldata'))
@@ -185,12 +172,8 @@ def main(args):
             evaluator.export_model_test_set_predictions(args.output_path)
 
     elif args.training_data_number == 'gradual':
-        train_size_loop = [1000] # [500,1000,3000,5000,7000,9000,11000,] # sst2
-        #train_size_loop = [1000,3000,5000,7000,9000] #mnli qqp qnli
-        #train_size_loop =[500] # [100,200,300,500,700,900,1200,2490] RTE
-        #train_size_loop = [0.05,0.1,0.2,0.3,0.4,0.5,1] # Cola mrpc stsb
-        # data preprocessing
-        
+        train_size_loop = [1000] # sst2
+
         for train_size in train_size_loop:
             _plot_training_details(args,train_size)
             # seed
@@ -209,7 +192,6 @@ def main(args):
             evaluator.train_and_evaluate(args.epochs, args.output_path,args.epochs-1)
 
             # saving artifacts
-            # #if args.fine_tune_type == 'bitfit':
             if not args.bias_terms_loop:
                 evaluator.plot_terms_changes(os.path.join(args.output_path, 'bias_term_changes_'+args.fine_tune_type+'_'+args.task_name+'_'+str(int(train_size))))
                 evaluator.plot_terms_angles(os.path.join(args.output_path, 'angles_term_changes_'+args.fine_tune_type+'_'+args.task_name+'_'+str(int(train_size))))
@@ -225,8 +207,7 @@ def main(args):
 if __name__ == '__main__':
 
     args = _parse_args()
-    bias_terms_loop = ['value','query','key'] # ,'intermediate','m1', 'm3','LN1','LN2']
-    #bias_terms_loop = ['m3','LN2']
+    bias_terms_loop = ['value','query','key'] 
     if args.bias_terms_loop:
         for bias_terms in bias_terms_loop:
             args.bias_terms = [bias_terms]

@@ -1,12 +1,3 @@
-"""This file contains the GLUEvaluator class which exposes an API for all the evaluations that were performed in
-BitFit paper (https://arxiv.org/abs/1804.07461), such as: 'full_ft', 'bitfit', 'frozen', 'rand_uniform' and
-'rand_row_col'.
-
-For questions please reach: benzakenelad@gmail.com
-
-Author Elad Ben-Zaken
-"""
-
 import os
 import re
 from functools import reduce
@@ -141,11 +132,7 @@ BIAS_LAYER_NAME_TO_LATEX = {
 
 
 class GLUEvaluator:
-    """This class contains all the functionality for GLUE benchmark evaluations that were performed in BitFit paper.
 
-    This class exposes an API for all the evaluations that were performed in BitFit paper
-    (https://arxiv.org/abs/1804.07461), such as: 'full_ft', 'bitfit', 'frozen', 'rand_uniform' and 'rand_row_col'.
-    """
 
     def __init__(self, task_name, model_name, device,training_data_number,fine_tune_type,bias_terms):
         """
@@ -198,12 +185,10 @@ class GLUEvaluator:
         is_regression = self.task_name == "stsb"
         if not is_regression:
             if "label" in datasets["train"].features and hasattr(datasets["train"].features["label"], "names"):
-                print('name')
                 label_list = datasets["train"].features["label"].names
                 self.idx_to_label = {k: v for k, v in enumerate(datasets['train'].features['label'].__dict__['_int2str'])}
                 self.num_labels = len(label_list)
             else:
-                print('no name')
                 label_feature = datasets["train"].features["label"]
                 self.idx_to_label = {k: v for k, v in enumerate(label_feature._int2str)}
                 self.num_labels = len(self.idx_to_label)
@@ -226,10 +211,7 @@ class GLUEvaluator:
         self.data_loaders = dict()
 
         if train_size:
-            print('train size:',  train_size)
             perm = np.random.permutation(len(datasets['train']))[:train_size]
-            #print('train size:', int(len(datasets['train']) * train_size))
-            #perm = np.random.permutation(len(datasets['train']))[:int(len(datasets['train']) * train_size)]
             self.data_loaders['train'] = Dataset.from_dict(datasets['train'][perm])
         else:
             self.data_loaders['train'] = datasets['train']
@@ -244,11 +226,6 @@ class GLUEvaluator:
             if 'test' in datasets:
                 self.data_loaders['test'] = datasets['test']
         else:
-            # if self.task_name == 'qqp' or self.task_name == 'mnli' or self.task_name == 'qnli' or self.task_name == 'stsb':
-            #     perm_validation = np.random.permutation(len(datasets['validation']))[:1000]
-            #     self.data_loaders['validation'] = Dataset.from_dict(datasets['validation'][perm_validation])
-            # else:
-            #     self.data_loaders['validation'] = datasets['validation']
             self.data_loaders['validation'] = datasets['validation']
             self.data_loaders['test'] = datasets['test']
 
@@ -341,7 +318,7 @@ class GLUEvaluator:
             # training for a single epoch
             self._train(self.data_loaders['train'], epoch)
 
-            # evaluation
+            # evaluation (for speedup)
             if epoch >0 and epoch % evaluation_frequency ==0:
                 for dataloader_type, dataloader in self.data_loaders.items():
                     if not ('test' in dataloader_type):
@@ -503,11 +480,9 @@ class GLUEvaluator:
             output_path (str): Directory path to save the terms changes heatmap too, if None will print the figure.
 
         """
-        # if self.encoder_trainable:
-        #     raise ValueError('Can plot terms changes only when BitFit.')
 
         if output_path:
-            LOGGER.info(f'Saving the BitFit bias terms changes to: {output_path}')
+            LOGGER.info(f'Saving the bias terms changes to: {output_path}')
 
         if 'roberta' in self.model_name:
             base_model = AutoModelForSequenceClassification.from_pretrained(self.model_name, return_dict=True).roberta
@@ -568,11 +543,6 @@ class GLUEvaluator:
         plt.xticks(rotation=45)
         plt.yticks(rotation=0, ha='left')
 
-        # align the y-axis text to the left
-        # yax = ax.get_yaxis()
-        # pad = max(T.label.get_window_extent().width for T in yax.majorTicks)
-        # yax.set_tick_params(pad=pad)
-
         if output_path:
             plt.savefig(output_path)
             plt.clf()
@@ -592,11 +562,9 @@ class GLUEvaluator:
             output_path (str): Directory path to save the terms changes heatmap too, if None will print the figure.
 
         """
-        # if self.encoder_trainable:
-        #     raise ValueError('Can plot terms changes only when BitFit.')
 
         if output_path:
-            LOGGER.info(f'Saving the BitFit bias terms changes to: {output_path}')
+            LOGGER.info(f'Saving the bias terms changes to: {output_path}')
 
         if 'roberta' in self.model_name:
             base_model = AutoModelForSequenceClassification.from_pretrained(self.model_name, return_dict=True).roberta
@@ -607,18 +575,7 @@ class GLUEvaluator:
 
         num_layers = self.model.config.num_hidden_layers
 
-        #be careful
-        def _calc_angle_diff(ft_p, base_p):
-            if np.linalg.norm(ft_p.data) == np.linalg.norm(base_p.data):
-                print('equal')
-                print(np.array_equal(ft_p.data, base_p.data))
-                print(np.linalg.norm(ft_p.data))
-                print(np.linalg.norm(base_p.data))
-                return -50
-            else: 
-                return np.arccos(np.clip(np.dot(ft_p.data.flatten(), base_p.data.flatten()) / (np.linalg.norm(ft_p.data.flatten()) * np.linalg.norm(base_p.data.flatten())), -1.0, 1.0)) * 180 / np.pi
-
-        #be careful
+        #our bias-efficient metric
         def _calc_projection_diff(ft_p, base_p):
             if np.arccos(np.clip(np.dot(ft_p.data.flatten(), base_p.data.flatten()) / (np.linalg.norm(ft_p.data.flatten()) * np.linalg.norm(base_p.data.flatten())), -1.0, 1.0)) * 180 / np.pi > 90:
                 print('angle larger than 90')
@@ -633,7 +590,6 @@ class GLUEvaluator:
             else:
                 return np.dot(ft_p.data.flatten(), base_p.data.flatten())/np.linalg.norm(ft_p.data.flatten())/np.linalg.norm(ft_p.data.flatten())
         
-        #def _calc_projection_diff(ft_p, base_p):
 
         angle_changes =[]
         for ft_name, ft_param in fine_tuned_model.named_parameters():
@@ -648,7 +604,6 @@ class GLUEvaluator:
         def _get_component_layer(name):
             return int(name.split('.')[2])
 
-        # angle
         keys = list(set(_get_component_name(c['name']) for c in angle_changes))
         keys_mapper = {k: i for i, k in enumerate(keys)}
 
@@ -682,11 +637,6 @@ class GLUEvaluator:
 
         plt.xticks(rotation=45)
         plt.yticks(rotation=0, ha='left')
-
-        # align the y-axis text to the left
-        # yax = ax.get_yaxis()
-        # pad = max(T.label.get_window_extent().width for T in yax.majorTicks)
-        # yax.set_tick_params(pad=pad)
 
         if output_path:
             plt.savefig(output_path)
