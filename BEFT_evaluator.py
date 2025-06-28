@@ -290,6 +290,121 @@ class GLUEvaluator:
         self.evaluations = {k: {metric_name: [] for metric_name in TASK_TO_METRICS[self.task_name]} for k in
                             self.data_loaders.keys()}
 
+
+    def fisher_information(self,args,trainable_components,output_path=None):
+                
+        # fisher information
+        self.model.eval()
+
+        criteria = torch.nn.MSELoss() if self.is_regression else torch.nn.CrossEntropyLoss()
+            
+        num_layers = self.model.config.num_hidden_layers 
+        grad = []
+
+        def _calc_mean_grad(grad_data):
+            return np.mean(np.array(grad_data.data)**2)
+            #return np.sum(np.array(grad_data.data)**2) 
+        
+        for step, batch in enumerate(self.data_loaders['train']):
+            # move batch data to gpu
+            if self.device is not None:
+                batch = tuple(obj.cuda(self.device) for obj in batch)
+
+            if 'roberta' in self.model_name:
+                input_ids, attention_mask, labels = batch
+                token_type_ids = None
+            else:
+                input_ids, attention_mask, token_type_ids, labels = batch
+
+            # forward pass
+            outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
+            outputs = outputs.logits
+
+            # loss calculation
+            labels = labels.view(-1)
+            outputs = outputs.view(-1) if self.is_regression else outputs.view(-1, self.num_labels)
+
+            loss = criteria(outputs, labels)
+
+            # backward pass (gradients calculation)
+            loss.backward()
+
+            # masking the relevant gradients (if needed)
+            if self.masks:
+                if 'roberta' in self.model_name:
+                    for name, param in self.model.roberta.named_parameters():
+                        param.grad[~self.masks[name]] = 0
+                else:
+                    for name, param in self.model.bert.named_parameters():
+                        param.grad[~self.masks[name]] = 0
+
+            # gradient clipping
+            torch.nn.utils.clip_grad_norm_(parameters=self.model.parameters(), max_norm=1.0)
+
+            # add fisher
+            for base_name, base_param in self.model.named_parameters():
+                if base_param.requires_grad and 'layer' in base_name:
+                    for item in grad:
+                        if item['name'] == base_name:
+                            item['value'] += _calc_mean_grad(base_param.grad)
+                            break
+                    else:
+                        grad.append({'name': base_name, 'value': _calc_mean_grad(base_param.grad)})
+
+        self.model.zero_grad()
+
+        # assume  do a step update
+        for base_name, base_param in self.model.named_parameters():
+            if base_param.requires_grad and 'layer' in base_name:
+                for item in grad:
+                    if item['name'] == base_name:
+                        item['value'] = _calc_mean_grad(item['value']) 
+                        break
+
+        def _get_component_name(name):
+            return re.split(r'.[0-9]+.', name)[1]
+
+        def _get_component_layer(name):
+            return int(name.split('.')[3])
+
+        keys = list(set(_get_component_name(c['name']) for c in grad))
+        keys_mapper = {k: i for i, k in enumerate(keys)}
+
+        total_weights = np.zeros(len(keys))
+        for change in grad:
+            total_weights[keys_mapper[_get_component_name(change['name'])]] += change['value']
+
+        keys = [keys[i] for i in np.argsort(-total_weights)]
+        keys_mapper = {k: i for i, k in enumerate(keys)}
+
+        avg_column = np.zeros(len(keys))
+        values_map = np.zeros((len(keys), num_layers + 1))
+        for change in grad:
+            avg_column[keys_mapper[_get_component_name(change['name'])]] += change['value']
+            values_map[keys_mapper[_get_component_name(change['name'])], _get_component_layer(change['name'])] = change[
+                'value']
+        avg_column /= num_layers
+        values_map[:, -1] = avg_column
+
+        fig, ax = plt.subplots(figsize=(num_layers, len(keys)))
+        xticklabels = [f'layer {i + 1}' for i in range(num_layers)]
+        xticklabels.append('Avg.')
+
+        keys = [BIAS_LAYER_NAME_TO_LATEX[key] for key in keys]
+        heatmap(values_map, cmap="Blues", ax=ax, yticklabels=keys, xticklabels=xticklabels)
+
+        plt.xticks(rotation=45)
+        plt.yticks(rotation=0, ha='left')
+
+        if output_path:
+            plt.savefig(output_path)
+            plt.clf()
+        else:
+            plt.show()
+
+        if self.device is not None:
+            self.model.cuda(self.device)
+
     def train_and_evaluate(self, num_epochs, output_path=None, evaluation_frequency=1):
         """Trains the encoder model and evaluate it on validation set.
 

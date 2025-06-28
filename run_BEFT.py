@@ -5,6 +5,8 @@ import logging
 from utils import setup_logging
 from BEFT_evaluator import GLUEvaluator, set_seed
 
+import sys
+
 setup_logging()
 LOGGER = logging.getLogger(__file__)
 
@@ -28,7 +30,8 @@ def _parse_args():
     parser.add_argument('--training-data-number', type=str, default='gradual', help='how many training data used',
                         choices={'all', 'gradual', 'other'})
 
-    parser.add_argument('--bias-terms-loop', type=bool, default=True, help='whether bias terms loop')
+    parser.add_argument('--bias-terms-loop', type=bool, default=False, help='whether bias terms loop')
+    parser.add_argument('--fisher-metric', type=bool, default=False, help='whether calculate the fisher information')
                         
     parser.add_argument('--fine-tune-type', '-f', required=False, type=str, default='bitfit',
                         help='Which fine tuning process to perform, types are the types that were performed.',
@@ -188,6 +191,9 @@ def main(args):
             trainable_components = GLUEvaluator.convert_to_actual_components(args.bias_terms)
             _perform_training_preparations(evaluator, args, trainable_components)
 
+            if args.fisher_metric == True:
+                evaluator.fisher_information(args,trainable_components,os.path.join(args.output_path, 'fisher_changes_'+str(train_size)))
+                sys.exit()
             # train and evaluate
             evaluator.train_and_evaluate(args.epochs, args.output_path,args.epochs-1)
 
