@@ -31,5 +31,3 @@ python run_BEFT.py
        --bias-terms-loop True
 ```
 
-
-Thanks for the repository of [BitFit](https://github.com/benzakenelad/BitFit).
