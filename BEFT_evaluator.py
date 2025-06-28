@@ -23,11 +23,9 @@ from utils import setup_logging
 setup_logging()
 LOGGER = logging.getLogger(__file__)
 
-
 def set_seed(seed):
     torch.manual_seed(seed)
     np.random.seed(seed)
-
 
 TASK_TO_KEYS = {
     "cola": ("sentence", None),
@@ -70,16 +68,11 @@ BIAS_TERMS_DICT = {
     'key': 'attention.self.key.bias',
     'query': 'attention.self.query.bias',
     'value': 'attention.self.value.bias',
-    #'output': 'output.dense.bias',
     'm1': 'attention.output.dense.bias',
     'm3': 'output.dense.bias',
     'LN2': 'output.LayerNorm.bias',
-    #'output_layernorm': 'output.LayerNorm.bias',
-    #'attention_layernorm': 'attention.output.LayerNorm.bias',
     'LN1': 'attention.output.LayerNorm.bias',
     'all': 'bias',
-    #'gLN1': 'attention.output.LayerNorm.weight',
-    #'gLN2': 'output.LayerNorm.weight',
 }
 
 TASK_NAME_TO_SUBMISSION_FILE_NAME = {
@@ -408,8 +401,6 @@ class GLUEvaluator:
     def train_and_evaluate(self, num_epochs, output_path=None, evaluation_frequency=1):
         """Trains the encoder model and evaluate it on validation set.
 
-        Learning curves will be saved to the output_path.
-
         Args:
             num_epochs (int): Number of epochs to perform.
             output_path (str): Directory path to save the learning curves too.
@@ -486,7 +477,7 @@ class GLUEvaluator:
         return evaluator
 
     def export_model_test_set_predictions(self, output_path):
-        """Infers on test set and saves the predictions to output_path (predictions are in "GLUE test server" format).
+        """Infers on test set and saves the predictions to output_path (predictions are in "GLUE/SuperGLUE test server" format).
 
         Args:
             output_path (str): Directory to save the predictions.
@@ -551,7 +542,7 @@ class GLUEvaluator:
                 print(f'Test inference progress: {counter}/{num_samples}\r', end='')
             print('')
 
-            # save the test set results (in "GLUE test server" format)
+            # save the test set results (in "GLUE/SuperGLUE test server" format)
             with open(os.path.join(output_path, prediction_file_name), 'w') as file:
                 file.write('index\tprediction\n')
                 for idx, result in enumerate(results):
@@ -668,10 +659,9 @@ class GLUEvaluator:
             self.model.cuda(self.device)
 
     def plot_terms_angles(self, output_path=None):
-        """Plot/save the terms changes (calculating explained below).
+        """Plot/save the terms changes of the projection considering the angles (calculating explained below).
 
-        We define the amount of change in a bias vector b to be (1/dim(b)) * |b_0 - b_f|_1 that is, the average
-        absolute change, across its dimensions, between the initial LM values b_0 and its fine-tuned values b_f.
+        This is our proposed bias-efficient metric.
 
         Args:
             output_path (str): Directory path to save the terms changes heatmap too, if None will print the figure.

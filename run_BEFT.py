@@ -22,16 +22,16 @@ def _parse_args():
 
     parser.add_argument('--output-path', '-o', required=False, type=str, default='./results',
                         help='output directory path for evaluation products.')
-    parser.add_argument('--task-name', '-t', required=False, type=str, default='sst2', help='GLUE task name for evaluation.',
+    parser.add_argument('--task-name', '-t', required=False, type=str, default='sst2', help='GLUE/SuperGLUE task name for evaluation.',
                         choices={'cola', 'mnli', 'mrpc', 'qnli', 'qqp', 'rte', 'sst2', 'stsb', 'wnli','cb','wic'})
     parser.add_argument('--model-name', '-m', type=str, default='bert-base-cased', help='model-name to evaluate with.',
                         choices={'bert-base-cased', 'bert-large-cased', 'roberta-base'})
 
-    parser.add_argument('--training-data-number', type=str, default='gradual', help='how many training data used',
-                        choices={'all', 'gradual', 'other'})
+    parser.add_argument('--training-data-number', type=str, default='gradual', help='how many training data used (all or gradual)',
+                        choices={'all', 'gradual'})
 
-    parser.add_argument('--bias-terms-loop', type=bool, default=False, help='whether bias terms loop')
-    parser.add_argument('--fisher-metric', type=bool, default=False, help='whether calculate the fisher information')
+    parser.add_argument('--bias-terms-loop', type=bool, default=False, help='whether to loop bias terms for b_v, b_q, b_k')
+    parser.add_argument('--fisher-metric', type=bool, default=False, help='whether to calculate the fisher information')
                         
     parser.add_argument('--fine-tune-type', '-f', required=False, type=str, default='bitfit',
                         help='Which fine tuning process to perform, types are the types that were performed.',
@@ -53,7 +53,7 @@ def _parse_args():
                         help='if given, will save the evaluator for later inference/examination.')
     parser.add_argument('--predict-test', action='store_true', default=False,
                         help='if given, will infer on test set using the fine-tuned model (predictions file will be in '
-                             'GLUE benchmark test server format). Predictions will be saved to output_path.')
+                             'GLUE/SuperGLUE benchmark test server format). Predictions will be saved to output_path.')
     parser.add_argument('--verbose', action='store_true', default=True,
                         help='if given, will plot a list of trainable weights.')
 
