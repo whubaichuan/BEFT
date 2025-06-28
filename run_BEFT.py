@@ -164,7 +164,7 @@ def main(args):
         # saving artifacts
         if not args.bias_terms_loop:
             evaluator.plot_terms_changes(os.path.join(args.output_path, 'bias_term_changes_'+args.fine_tune_type+'_'+args.task_name+'_'+'alldata'))
-            evaluator.plot_terms_angles(os.path.join(args.output_path, 'angles_term_changes_'+args.fine_tune_type+'_'+args.task_name+'_'+'alldata'))
+            evaluator.plot_terms_angles(os.path.join(args.output_path, 'ours_term_changes_'+args.fine_tune_type+'_'+args.task_name+'_'+'alldata'))
 
         # save model
         if args.save_evaluator:
@@ -200,7 +200,7 @@ def main(args):
             # saving artifacts
             if not args.bias_terms_loop:
                 evaluator.plot_terms_changes(os.path.join(args.output_path, 'bias_term_changes_'+args.fine_tune_type+'_'+args.task_name+'_'+str(int(train_size))))
-                evaluator.plot_terms_angles(os.path.join(args.output_path, 'angles_term_changes_'+args.fine_tune_type+'_'+args.task_name+'_'+str(int(train_size))))
+                evaluator.plot_terms_angles(os.path.join(args.output_path, 'ours_term_changes_'+args.fine_tune_type+'_'+args.task_name+'_'+str(int(train_size))))
 
             # save model
             if args.save_evaluator:
