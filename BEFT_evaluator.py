@@ -128,13 +128,7 @@ class GLUEvaluator:
 
 
     def __init__(self, task_name, model_name, device,training_data_number,fine_tune_type,bias_terms):
-        """
-        Args:
-            task_name (str): task name, e.g. 'rte'.
-            model_name (str): model name, e.g. 'bert-base-uncased'.
-            device (int): GPU device to run on, if None will run on CPU.
 
-        """
         self.task_name = task_name
         self.model_name = model_name
         self.device = device
@@ -157,15 +151,7 @@ class GLUEvaluator:
         self.idx_to_label = None
 
     def preprocess_dataset(self, padding, max_sequence_len, batch_size, train_size=None):
-        """Preprocess the train and validation datasets.
 
-        Args:
-            padding (str): padding method (currently 'max_length' is the suggested method)
-            max_sequence_len (int): the maximum sequence length
-            batch_size (int): training and evaluating batch size
-            train_size (int): clip the train dataset size, if None will use all available samples
-
-        """
         LOGGER.info(f'Downloading dataset: {self.task_name}')
         if self.task_name in {'cb', 'wic'}:
             datasets = load_dataset('super_glue', self.task_name)
@@ -231,19 +217,7 @@ class GLUEvaluator:
 
     def training_preparation(self, learning_rate, optimizer, encoder_trainable, trainable_components=None,
                              verbose=True):
-        """Performs training preparation.
 
-        Perform training preparation including: model initialization, optimizer initialization, relevant
-        gradients deactivation and plotting a list of all trainable params (if verbose is True).
-
-        Args:
-            learning_rate (float): learning_rate to train with.
-            optimizer(str): optimizer to perform the training with, currently adam and adamw are supported.
-            encoder_trainable (bool): if True will perform a Full-FT else will perform BitFit training preparation.
-            trainable_components(Union[List[str], None]): list of trainable component.(subset of `BIAS_TERMS_DICT` keys)
-            verbose: if True will plot a list of all trainable params
-
-        """
         if self.model:
             raise Exception('Training preparation was already completed.')
 
@@ -399,14 +373,7 @@ class GLUEvaluator:
             self.model.cuda(self.device)
 
     def train_and_evaluate(self, num_epochs, output_path=None, evaluation_frequency=1):
-        """Trains the encoder model and evaluate it on validation set.
 
-        Args:
-            num_epochs (int): Number of epochs to perform.
-            output_path (str): Directory path to save the learning curves too.
-            evaluation_frequency (int): will evaluate every `evaluation_frequency` epochs.
-
-        """
 
         # validations
         if not self.data_loaders:
@@ -437,12 +404,7 @@ class GLUEvaluator:
             #self.plot_learning_curves(output_path)
 
     def save(self, output_path):
-        """Saves the evaluator to the output_path directory.
 
-        Args:
-            output_path (str): Directory to save to model to.
-
-        """
         LOGGER.info(f'Saving the model to: {output_path}')
 
         self.model.cpu()
@@ -455,15 +417,7 @@ class GLUEvaluator:
 
     @staticmethod
     def load(path, gpu_device):
-        """Loads the evaluator from `path`.
 
-        Args:
-            path (str): Directory to load to model from.
-            gpu_device (int): GPU device ID.
-
-        Returns:
-            (GLUEvaluator): the GLUEvaluator instance we loaded
-        """
         with open(path, 'rb') as file:
             data = pickle.load(file)
         evaluator = GLUEvaluator(data['task_name'], data['model_name'], gpu_device)
@@ -477,12 +431,7 @@ class GLUEvaluator:
         return evaluator
 
     def export_model_test_set_predictions(self, output_path):
-        """Infers on test set and saves the predictions to output_path (predictions are in "GLUE/SuperGLUE test server" format).
 
-        Args:
-            output_path (str): Directory to save the predictions.
-
-        """
         # validations
         if not self.data_loaders:
             raise Exception(
@@ -551,12 +500,7 @@ class GLUEvaluator:
         LOGGER.info(f'Test set inference is done, inference artifacts are: {list(test_data_loaders.keys())}')
 
     def plot_learning_curves(self, output_path=None):
-        """Plot the learning curves for each metric.
 
-        Args:
-            output_path (str): Directory path to save the learning curves too, if None will print the figure.
-
-        """
         for metric_name in TASK_TO_METRICS[self.task_name]:
             for dataloader_type, results_mapper in self.evaluations.items():
                 if not ('test' in dataloader_type):
@@ -577,15 +521,6 @@ class GLUEvaluator:
                 plt.show()
 
     def plot_terms_changes(self, output_path=None):
-        """Plot/save the terms changes (calculating explained below).
-
-        We define the amount of change in a bias vector b to be (1/dim(b)) * |b_0 - b_f|_1 that is, the average
-        absolute change, across its dimensions, between the initial LM values b_0 and its fine-tuned values b_f.
-
-        Args:
-            output_path (str): Directory path to save the terms changes heatmap too, if None will print the figure.
-
-        """
 
         if output_path:
             LOGGER.info(f'Saving the bias terms changes to: {output_path}')
@@ -659,14 +594,6 @@ class GLUEvaluator:
             self.model.cuda(self.device)
 
     def plot_terms_angles(self, output_path=None):
-        """Plot/save the terms changes of the projection considering the angles (calculating explained below).
-
-        This is our proposed bias-efficient metric.
-
-        Args:
-            output_path (str): Directory path to save the terms changes heatmap too, if None will print the figure.
-
-        """
 
         if output_path:
             LOGGER.info(f'Saving the bias terms changes to: {output_path}')
@@ -754,15 +681,7 @@ class GLUEvaluator:
 
             
     def set_uniform_mask(self, mask_size):
-        """Uniformly chooses `mask_size` parameters from the model and generates a boolean mask for every component.
 
-        Uniformly sample `mask_size` parameters from the entire model parameters, and in fine-tuning process only them
-        will be fine-tuned.
-
-        Args:
-            mask_size (int): number of non-masked parameters.
-
-        """
         if not self.encoder_trainable:
             raise Exception('In order to train with a random mask the encoder must be trainable.')
 
@@ -797,12 +716,7 @@ class GLUEvaluator:
                     mask[int(index / param.shape[1]), index % param.shape[1]] = True
 
     def set_row_and_column_random_mask(self):
-        """Initializes the mask by randomly choosing rows or a column from each weight
 
-        Initializes the mask by randomly choosing rows or a column (column size is equal the bias size) from each
-        weight, the amount of total non-masked parameters in each weight is equal to the matching bias param size.
-
-        """
         if not self.encoder_trainable:
             raise Exception('In order to train with a random mask the encoder must be trainable.')
 
@@ -839,12 +753,7 @@ class GLUEvaluator:
                     f'Total params: {total_params}')
 
     def _deactivate_relevant_gradients(self, trainable_components):
-        """Turns off the model parameters requires_grad except the trainable_components.
 
-        Args:
-            trainable_components (List[str]): list of trainable components (the rest will be deactivated)
-
-        """
         for param in self.model.parameters():
             param.requires_grad = False
         if trainable_components:
@@ -871,15 +780,7 @@ class GLUEvaluator:
         return [BIAS_TERMS_DICT[component] for component in components]
 
     def _train(self, train_dataloader, epoch, max_grad_norm=1.0):
-        """Trains the model for a single epoch
 
-        Args:
-            train_dataloader (torch.utils.data.DataLoader): the train data loader
-            epoch (int): the epoch number (for logging)
-            max_grad_norm (float): the maximum gradient norm we allow. The norm is computed over all gradients together,
-            as if they were concatenated into a single vector.
-
-        """
         # move to train mode
         self.model.train()
 
@@ -937,15 +838,7 @@ class GLUEvaluator:
         print('')
 
     def _evaluate(self, dataloader, dataloader_type):
-        """Evaluates the model on the dataloader
 
-        Args:
-            dataloader (torch.utils.data.DataLoader): the data loader we evaluate the model on
-            dataloader_type (str): the dataloader type (train/validation)
-
-        Returns:
-            (Dict[str, float]): dictionary that maps between metric_name and the metric result
-        """
         # move to eval mode
         self.model.eval()
 
@@ -1007,18 +900,7 @@ class GLUEvaluator:
 
     @staticmethod
     def _convert_dataset_to_data_loader(dataset, model_name, batch_size, random_sampler, test=False):
-        """converts a datasets.arrow_dataset.Dataset to torch.utils.data.DataLoader.
 
-        Args:
-            dataset (datasets.arrow_dataset.Dataset): the Dataset to convert to DataLoader.
-            model_name (str): model name (e.g. bert-base-uncased).
-            batch_size (int): batch size for training and evaluation.
-            random_sampler (bool): if True, DataLoader will sample randomly else sequentially.
-            test (bool): if True, dataset contains test samples.
-
-        Returns:
-            (torch.utils.data.DataLoader): the data loader
-        """
         if test:
             keys = ['input_ids', 'attention_mask', 'token_type_ids']
         else:
