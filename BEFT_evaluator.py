@@ -320,14 +320,6 @@ class GLUEvaluator:
 
         self.model.zero_grad()
 
-        # assume  do a step update
-        for base_name, base_param in self.model.named_parameters():
-            if base_param.requires_grad and 'layer' in base_name:
-                for item in grad:
-                    if item['name'] == base_name:
-                        item['value'] = _calc_mean_grad(item['value']) 
-                        break
-
         def _get_component_name(name):
             return re.split(r'.[0-9]+.', name)[1]
 
