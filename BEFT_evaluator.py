@@ -273,6 +273,9 @@ class GLUEvaluator:
             #return np.sum(np.array(grad_data.data)**2) 
         
         for step, batch in enumerate(self.data_loaders['train']):
+
+            self.model.zero_grad()
+
             # move batch data to gpu
             if self.device is not None:
                 batch = tuple(obj.cuda(self.device) for obj in batch)
@@ -318,7 +321,8 @@ class GLUEvaluator:
                     else:
                         grad.append({'name': base_name, 'value': _calc_mean_grad(base_param.grad)})
 
-        self.model.zero_grad()
+        for item in grad: 
+            item['value']/=step+1#len(self.data_loaders['train'])
 
         def _get_component_name(name):
             return re.split(r'.[0-9]+.', name)[1]
