@@ -10,8 +10,8 @@ BEFT: Bias-Terms-Efficient Fine-Tuning of Language Models
 pip install -r requirements.txt
 ```
 
-
-# Evaluation examples:
+# Bias-Selection Approaches:
+> We provide a notebook `tutorial.ipynb` for a simple tutorial with visualizing importance ranking by different bias-selection approaches.
 
 To get the importance ranking by **our bias-efficient approch** and **_Magnitude_ approach** for BERT<sub>BASE</sub> on low-date RTE dataset:
 
