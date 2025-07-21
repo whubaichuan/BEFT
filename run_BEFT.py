@@ -31,7 +31,7 @@ def _parse_args():
                         choices={'all', 'gradual'})
 
     parser.add_argument('--bias-terms-loop', type=bool, default=False, help='whether to loop bias terms for b_v, b_q, b_k')
-    parser.add_argument('--fisher-metric', type=bool, default=False, help='whether to calculate the fisher information')
+    parser.add_argument('--fisher', type=bool, default=False, help='whether to calculate the fisher information')
                         
     parser.add_argument('--fine-tune-type', '-f', required=False, type=str, default='bitfit',
                         help='Which fine tuning process to perform, types are the types that were performed.',
@@ -191,7 +191,7 @@ def main(args):
             trainable_components = GLUEvaluator.convert_to_actual_components(args.bias_terms)
             _perform_training_preparations(evaluator, args, trainable_components)
 
-            if args.fisher_metric == True:
+            if args.fisher == True:
                 evaluator.fisher_information(args,trainable_components,os.path.join(args.output_path, 'fisher_changes_'+str(train_size)))
                 sys.exit()
             # train and evaluate
