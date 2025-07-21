@@ -11,7 +11,7 @@ accelerate==0.33.0
 
 ## Usage
 
-Use `run.py` for all functions (zero-shot/ICL/fine-tuning/):
+Use `run.py` for all functions (zero-shot/ICL/fine-tuning):
 ```bash
 python run.py {ARGUMENTS}
 ```
