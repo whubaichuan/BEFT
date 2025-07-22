@@ -13,29 +13,29 @@ pip install -r requirements.txt
 # Bias-Selection Approaches:
 > We provide a notebook `tutorial.ipynb` for a simple tutorial with visualizing importance ranking by different bias-selection approaches.
 
-To get the importance ranking by **our bias-efficient approch** and **_Magnitude_ approach** for BERT<sub>BASE</sub> on low-date RTE dataset:
+To get the importance ranking by **our bias-efficient approch** and **_Magnitude_ approach** for BERT<sub>BASE</sub> on low-date SST-2 dataset:
 
 ```bash
 python run_BEFT.py 
-       --task-name rte\  
+       --task-name sst2\  
        --model-name bert-base-cased
 ```
 
-To get the importance ranking by **_Fisher_ approach** for BERT<sub>BASE</sub> on low-date RTE dataset:
+To get the importance ranking by **_Fisher_ approach** for BERT<sub>BASE</sub> on low-date SST-2 dataset:
 
 ```bash
 python run_BEFT.py 
-       --task-name rte\  
+       --task-name sst2\  
        --model-name bert-base-cased\
        --fisher True\
        --batch-size 8
 ```
 
-To get the performance of fine-tuning among **b**<sub>v</sub>, **b**<sub>q</sub>, and **b**<sub>k</sub> for BERT<sub>BASE</sub> on low-date RTE dataset:
+To get the performance of fine-tuning among **b**<sub>v</sub>, **b**<sub>q</sub>, and **b**<sub>k</sub> for BERT<sub>BASE</sub> on low-date SST-2 dataset:
 
 ```
 python run_BEFT.py 
-       --task-name rte\  
+       --task-name sst2\  
        --model-name bert-base-cased\
        --bias-terms-loop True
 ```

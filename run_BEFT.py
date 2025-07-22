@@ -22,7 +22,7 @@ def _parse_args():
 
     parser.add_argument('--output-path', '-o', required=False, type=str, default='./results',
                         help='output directory path for evaluation products.')
-    parser.add_argument('--task-name', '-t', required=False, type=str, default='rte', help='GLUE/SuperGLUE task name for evaluation.',
+    parser.add_argument('--task-name', '-t', required=False, type=str, default='sst2', help='GLUE/SuperGLUE task name for evaluation.',
                         choices={'cola', 'mnli', 'mrpc', 'qnli', 'qqp', 'rte', 'sst2', 'stsb', 'wnli','cb','wic'})
     parser.add_argument('--model-name', '-m', type=str, default='bert-base-cased', help='model-name to evaluate with.',
                         choices={'bert-base-cased', 'bert-large-cased', 'roberta-base'})
@@ -46,7 +46,7 @@ def _parse_args():
                         help='GPU id for BEFT, if not mentioned will train on CPU.')
     parser.add_argument('--seed', '-s', type=int, default=0, help='seed value to set.')
     parser.add_argument('--learning-rate', '-l', type=float, help='learning rate for training.')
-    parser.add_argument('--epochs', '-e', type=int, default=30, help='number of training epochs.')
+    parser.add_argument('--epochs', '-e', type=int, default=16, help='number of training epochs.')
     parser.add_argument('--batch-size', '-b', type=int, default=16, help='training and evaluation batch size.')
     parser.add_argument('--optimizer', type=str, default='adamw', choices={'adam', 'adamw'})
     parser.add_argument('--save-evaluator', action='store_true', default=False,
@@ -92,7 +92,7 @@ def _plot_training_details(args,data_size):
     if args.fine_tune_type == 'bitfit':
         LOGGER.info(f"Bias Trainable Terms: {'all bias terms' if 'all' in args.bias_terms else args.bias_terms}")
 
-    lr_bert_base = {'rte':1e-3}
+    lr_bert_base = {'sst2':4e-4}
 
     LOGGER.info(f'Epochs: {args.epochs}')
     if args.fine_tune_type == 'bitfit':
@@ -175,7 +175,7 @@ def main(args):
             evaluator.export_model_test_set_predictions(args.output_path)
 
     elif args.training_data_number == 'gradual':
-        train_size_loop = [300] # rte
+        train_size_loop = [1000] # sst2
 
         for train_size in train_size_loop:
             _plot_training_details(args,train_size)

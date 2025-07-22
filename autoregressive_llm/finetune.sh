@@ -1,5 +1,5 @@
 
-TASKS=(SST2)
+TASKS=(RTE)
 MODEL=${MODEL:-facebook/opt-1.3b}
 
 MODEL_NAME=(${MODEL//\// })
