@@ -1,5 +1,5 @@
 # BEFT 
-BEFT: Bias-Terms-Efficient Fine-Tuning of Language Models
+BEFT: Bias-Efficient Fine-Tuning of Language Models
 
 ![BEFT](./img/main.png)
 
