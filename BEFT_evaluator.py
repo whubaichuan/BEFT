@@ -387,8 +387,8 @@ class GLUEvaluator:
             # training for a single epoch
             self._train(self.data_loaders['train'], epoch)
 
-            # evaluation (for speedup)
-            if epoch >0 and epoch % evaluation_frequency ==0:
+            # evaluation
+            if not epoch % evaluation_frequency:
                 for dataloader_type, dataloader in self.data_loaders.items():
                     if not ('test' in dataloader_type):
                         results = self._evaluate(dataloader, dataloader_type.upper())

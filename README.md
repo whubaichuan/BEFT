@@ -11,7 +11,7 @@ pip install -r requirements.txt
 ```
 
 # Bias-Selection Approaches:
-> We provide a notebook `tutorial.ipynb` for a simple tutorial with visualizing importance ranking by different bias-selection approaches.
+> We provide a notebook `tutorial.ipynb` for a simple tutorial with visualizing importance ranking by different bias-selection approaches in Figure 1 low-data regime.
 
 To get the importance ranking by **our bias-efficient approch** and **_Magnitude_ approach** for BERT<sub>BASE</sub> on low-data SST-2 dataset:
 

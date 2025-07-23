@@ -42,7 +42,7 @@ def _parse_args():
                         help='bias terms, should be given in case --fine-tune-type is bitfit '
                              '(choose \'all\' for all bias terms)')
 
-    parser.add_argument('--gpu-device', '-d', type=int, default=0,
+    parser.add_argument('--gpu-device', '-d', type=int, default=None,
                         help='GPU id for BEFT, if not mentioned will train on CPU.')
     parser.add_argument('--seed', '-s', type=int, default=0, help='seed value to set.')
     parser.add_argument('--learning-rate', '-l', type=float, help='learning rate for training.')
@@ -195,7 +195,7 @@ def main(args):
                 evaluator.fisher_information(args,trainable_components,os.path.join(args.output_path, 'fisher_changes_'+str(train_size)))
                 sys.exit()
             # train and evaluate
-            evaluator.train_and_evaluate(args.epochs, args.output_path,args.epochs-1)
+            evaluator.train_and_evaluate(args.epochs, args.output_path)
 
             # saving artifacts
             if not args.bias_terms_loop:
