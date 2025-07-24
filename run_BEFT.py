@@ -145,36 +145,7 @@ def main(args):
     # args parsing
     _validate_args(args)
 
-    if args.training_data_number == 'all':
-        _plot_training_details(args,'all')
-        # seed
-        set_seed(args.seed)
-
-        evaluator = GLUEvaluator(args.task_name, args.model_name, args.gpu_device,args.training_data_number,args.fine_tune_type,args.bias_terms)
-
-        evaluator.preprocess_dataset(PADDING, MAX_SEQUENCE_LEN, args.batch_size)
-
-        # training preparation
-        trainable_components = GLUEvaluator.convert_to_actual_components(args.bias_terms)
-        _perform_training_preparations(evaluator, args, trainable_components)
-
-        # train and evaluate
-        evaluator.train_and_evaluate(args.epochs, args.output_path,args.epochs-1) # final evaluation
-
-        # saving artifacts
-        if not args.bias_terms_loop:
-            evaluator.plot_terms_changes(os.path.join(args.output_path, 'bias_term_changes_'+args.fine_tune_type+'_'+args.task_name+'_'+'alldata'))
-            evaluator.plot_terms_angles(os.path.join(args.output_path, 'ours_term_changes_'+args.fine_tune_type+'_'+args.task_name+'_'+'alldata'))
-
-        # save model
-        if args.save_evaluator:
-            evaluator.save(os.path.join(args.output_path, 'evaluator'))
-
-        # export model test set predictions
-        if args.predict_test:
-            evaluator.export_model_test_set_predictions(args.output_path)
-
-    elif args.training_data_number == 'gradual':
+    if args.training_data_number == 'gradual':
         train_size_loop = [1000] # sst2
 
         for train_size in train_size_loop:
