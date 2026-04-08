@@ -3,7 +3,7 @@ import os
 import logging
 
 from utils import setup_logging
-from BEFT_evaluator import GLUEvaluator, set_seed
+from BEFT_LoRA_evaluator import GLUEvaluator, set_seed
 
 import sys
 
@@ -14,7 +14,6 @@ PADDING = "max_length"
 MAX_SEQUENCE_LEN = 128
 
 RAND_UNIFORM_MASK_SIZE = {'bert-base-cased': 100000, 'bert-large-cased': 280000, 'roberta-base': 105000}
-
 
 def _parse_args():
     parser = argparse.ArgumentParser(description='BEFT evaluation',
@@ -93,13 +92,9 @@ def _plot_training_details(args,data_size):
     if args.fine_tune_type == 'bitfit':
         LOGGER.info(f"Bias Trainable Terms: {'all bias terms' if 'all' in args.bias_terms else args.bias_terms}")
 
-    lr_bert_base = {'cola':7e-4, 'mnli':1e-4, 'mrpc':7e-4, 'qnli':1e-4, 'qqp':4e-4, 'rte':1e-3, 'sst2':4e-4, 'stsb':1e-4,'cb':1e-3, 'wic':1e-3}
-    epochs_base = {'cola':16, 'mnli':30, 'mrpc':60, 'qnli':30, 'qqp':30, 'rte':30, 'sst2':16, 'stsb':60,'cb':60, 'wic':16}
-    epochs_large = {'rte':30, 'sst2':30, 'cb':60, 'wic':30}
+    lr_bert_base = {'sst2':4e-4}
+    epochs_base = {'sst2':50}
     args.epochs = epochs_base[args.task_name]
-
-    if args.model_name == 'bert-large-cased' or args.model_name == 'roberta-base':
-        args.epochs = epochs_large[args.task_name]
 
     LOGGER.info(f'Epochs: {args.epochs}')
     if args.fine_tune_type == 'bitfit':
@@ -153,16 +148,7 @@ def main(args):
     _validate_args(args)
 
     if args.training_data_number == 'gradual':
-        low_data_lib = {'cola':[1710], 'mnli':[1000], 'mrpc':[367], 'qnli':[1000], 'qqp':[1000], 'rte':[300], 'sst2':[1000], 'stsb':[287]}
-        medium_data_lib = {'cola':[3420], 'mnli':[5000], 'mrpc':[1191], 'qnli':[5000], 'qqp':[5000], 'rte':[900], 'sst2':[5000], 'stsb':[1150]}
-        high_data_lib = {'cola':[4275], 'mnli':[9000], 'mrpc':[1835], 'qnli':[9000], 'qqp':[9000], 'rte':[1200], 'sst2':[11000], 'stsb':[2300]}
-        if args.data_regime == 'low':
-            train_size_loop = low_data_lib[args.task_name]
-        elif args.data_regime == 'medium':
-            train_size_loop = medium_data_lib[args.task_name]
-        elif args.data_regime == 'high':
-            train_size_loop = high_data_lib[args.task_name]
-        #train_size_loop = [1000] # sst2
+        train_size_loop = [1000] # sst2
 
         for train_size in train_size_loop:
             _plot_training_details(args,train_size)

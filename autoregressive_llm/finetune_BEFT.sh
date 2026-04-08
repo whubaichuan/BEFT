@@ -1,5 +1,5 @@
 
-TASKS=(RTE)
+TASK=(${TASK:-RTE})
 MODEL=${MODEL:-facebook/opt-1.3b}
 
 MODEL_NAME=(${MODEL//\// })
@@ -15,6 +15,8 @@ if [ "$MODE" == "prefix" ]; then
     EXTRA_ARGS="--prefix_tuning --num_prefix 5 --no_reparam --prefix_init_by_real_act"
 elif [ "$MODE" == "lora" ]; then
     EXTRA_ARGS="--lora"
+elif [ "$MODE" == "additive_bias" ]; then
+    EXTRA_ARGS="--additive_bias"
 fi
 
 DEV=""

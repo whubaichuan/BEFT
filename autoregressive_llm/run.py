@@ -58,6 +58,9 @@ class OurArguments(TrainingArguments):
     only_train_option: bool = True # whether to only train the option part of the input
     train_as_classification: bool = False # take the log likelihood of all options and train as classification 
 
+    # Additive bias fine-tuning
+    additive_bias: bool = False # whether to add bias terms 
+
     # Prefix tuning
     prefix_tuning: bool = False # whether to use prefix tuning
     num_prefix: int = 5 # number of prefixes to use
@@ -183,6 +186,10 @@ class Framework:
         if self.args.lora:
             from lora import LoRA
             LoRA(model, r=self.args.lora_r, alpha=self.args.lora_alpha, float16=self.args.load_float16)
+
+        if self.args.additive_bias:
+            from additive_bias import Addbias
+            Addbias(model, float16=self.args.load_float16)
 
         if self.args.head_tuning:
             if model.config.model_type == "opt":
@@ -316,7 +323,7 @@ class Framework:
                 outputs.append({"log_probs": selected_log_probs, "sfc_log_probs": sfc_selected_log_probs if self.args.sfc or self.args.icl_sfc else None})
 
             if self.args.sfc or self.args.icl_sfc:
-                # Calibrated probabilities (surface form competition; https://arxiv.org/pdf/2104.08315.pdf)
+                # Calibrated probabilities 
                 # log p(candidate | input) = log p_lm(candidate | input) - log p_lm(candidate | sfc prompt)
                 scores = [x['log_probs'].sum().item() - x['sfc_log_probs'].sum().item() for x in outputs]
             else:
