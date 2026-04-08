@@ -1,4 +1,4 @@
-# BEFT 
+# BEFT (Accepted to ACL 2026 Main Conference)
 BEFT: Bias-Efficient Fine-Tuning of Language Models in Low-Data Regimes
 
 ![BEFT](./img/main.png)
@@ -138,4 +138,14 @@ For Table 6 and Appendix C.7-Table 18 in our paper:
 #<task>: ['SST2','Copa','SQuAD']
 #<model>:['meta-llama/Llama-2-7b-hf','EleutherAI/gpt-j-6b','deepseek-ai/deepseek-coder-1.3b-base']
 MODE=additive_bias MODEL=<model> TASK=<task> bash autoregressive_llm/finetune_BEFT.sh
+```
+
+# Citation
+```
+@article{huang2025beft,
+  title={BEFT: Bias-Efficient Fine-Tuning of Language Models},
+  author={Huang, Baichuan and Balashankar, Ananth and Aminifar, Amir},
+  journal={arXiv preprint arXiv:2509.15974},
+  year={2025}
+}
 ```
