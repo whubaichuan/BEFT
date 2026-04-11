@@ -149,3 +149,5 @@ MODE=additive_bias MODEL=<model> TASK=<task> bash autoregressive_llm/finetune_BE
   year={2025}
 }
 ```
+
+> **Acknowledgement**: We acknowledge the following repositories [BitFit](https://github.com/benzakenelad/BitFit) and [MeZO](https://github.com/princeton-nlp/mezo).
