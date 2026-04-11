@@ -1,8 +1,12 @@
-# BEFT (Accepted to ACL 2026 Main Conference)
+<h1 align="center">
+BEFT (ACL2026)
+  <img src="./img/111.svg" width="30" height="30">
+  <img src="./img/google.png" width="" height="30">
+</h1>
 BEFT: Bias-Efficient Fine-Tuning of Language Models in Low-Data Regimes
+ (Accepted to ACL 2026 Main Conference)
 
 ![BEFT](./img/main.png)
-
 
 # Environment 
 
