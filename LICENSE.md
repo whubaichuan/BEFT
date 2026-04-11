@@ -1,6 +1,7 @@
 MIT License
 
 Copyright (c) 2026 Baichuan Huang
+
 Copyright (c) 2022 benzakenelad
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

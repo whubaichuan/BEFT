@@ -1,6 +1,7 @@
 MIT License
 
 Copyright (c) 2026 Baichuan Huang
+
 Copyright (c) 2021 Princeton Natural Language Processing
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
