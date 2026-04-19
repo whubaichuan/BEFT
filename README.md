@@ -139,7 +139,7 @@ To generalize our findings to bias-free LLMs with adding **b**<sub>v</sub> for L
 ```bash
 MODE=additive_bias MODEL=meta-llama/Llama-2-7b-hf TASK=SST2 bash autoregressive_llm/finetune_BEFT.sh
 ```
-For Table 6 and Appendix C.7-Table 18 in our paper:
+For Table 6 and Appendix C.8-Table 16 in our paper:
 ```bash
 #<task>: ['SST2','Copa','SQuAD']
 #<model>:['meta-llama/Llama-2-7b-hf','EleutherAI/gpt-j-6b','deepseek-ai/deepseek-coder-1.3b-base']
